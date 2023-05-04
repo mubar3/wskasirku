@@ -32,7 +32,7 @@ class Auth_controller extends Controller
                 'name' => $data->name,
                 'email' => $data->email,
                 'toko_id' => $data->toko_id,
-                'jeni' => $data->jenis,
+                'jenis' => $data->jenis,
                 'key' => $data->key,
                 'password' => $this->encryptHash($data->password,$data->key),
             ]);
@@ -59,7 +59,7 @@ class Auth_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Email salah']);
         }
-        $user=User::where('password',$this->encryptHash($data->password,$user->key))->first();
+        $user=User::where('email',$data->email)->where('password',$this->encryptHash($data->password,$user->key))->first();
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Password salah']);
         }
@@ -86,5 +86,21 @@ class Auth_controller extends Controller
             'session' => ''
         ]);
         return response()->json(['status'=>true,'message'=>'Berhasil']);
+    }
+
+    public function get_data(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        return response()->json(['status'=>true,'message'=>'Sukses','data'=>$user]);
+        
     }
 }
