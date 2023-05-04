@@ -145,8 +145,8 @@ class Trans_controller extends Controller
         $validator = Validator::make($data->all(),[
             'session' => 'required',
             'barang_id' => 'required',
-            'nama' => 'required',
-            'harga' => 'required',
+            // 'nama' => 'required',
+            // 'harga' => 'required',
         ]);
         if($validator->fails()){      
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
