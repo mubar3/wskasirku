@@ -31,6 +31,19 @@ class Trans_controller extends Controller
             ->where('toko_id',$user->toko_id)
             ->where('status','y')
             ->get();
+
+        if(!empty($data->tanggal_awal)){
+            foreach ($barang as $key) {
+                $key->tambah=Toko_tran::whereBetween('created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
+                        ->where('barang_id',$key->id)
+                        ->where('jenis','tambah')
+                        ->count();
+                $key->kurang=Toko_tran::whereBetween('created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
+                        ->where('barang_id',$key->id)
+                        ->where('jenis','kurang')
+                        ->count();
+            }
+        }
         return response()->json(['status'=>true,'message'=>'sukses','data'=>$barang]);
     }
 
