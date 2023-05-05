@@ -70,6 +70,40 @@ class Auth_controller extends Controller
         return response()->json(['status'=>true,'message'=>'Berhasil','token'=>$token]);
     }
 
+    public function ubah_data(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+            'email' => 'required',
+            'password' => 'required',
+            'password_lama' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        if($this->encryptHash($data->password_lama,$user->key) != $user->password){
+            return response()->json(['status'=>false,'message'=>'Password yang lama salah']);
+        }
+        
+        if($this->encryptHash($data->password,$user->key) == $user->password){
+            return response()->json(['status'=>false,'message'=>'Password sama dengan sebelumya']);
+        }
+
+        unset($data['session']);
+        unset($data['password_lama']);
+        $data   ['password']=$this->encryptHash($data->password,$user->key);
+
+        if($user->update($data->all())){
+            return response()->json(['status'=>true,'message'=>'Berhasil']);
+        }
+        return response()->json(['status'=>false,'message'=>'Gagal']);
+
+    }
+
     public function logout(Request $data)
     {
         $validator = Validator::make($data->all(),[
