@@ -328,6 +328,16 @@ class Trans_controller extends Controller
                 'toko_id' => $user->toko_id
             ]);
             foreach ($barang as $key) {
+                $cek_barang=Toko_barang::find($key['id']);
+                // return 1;
+                if(!empty($cek_barang->stok)){
+                    if($cek_barang->stok < $key['banyak']){
+                        return response()->json(['status'=>false,'message'=>'Stok barang ada yang kurang']);
+                    }
+                    $cek_barang->update([
+                        'stok' => $cek_barang->stok - $key['banyak']
+                    ]);
+                }
                 toko2barang_tran::create([
                     'trans_id' => $insert->id,
                     'barang_id' => $key['id'],
