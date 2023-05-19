@@ -416,6 +416,9 @@ class Trans_controller extends Controller
             foreach ($key->barang as $value) {
                 $harga=$harga+$value->total_harga;
             }
+            if(count($key->barang) < 1){
+                Toko2_tran::find($key->id)->delete();
+            }
             $key->total_harga=$harga;
         }
         return response()->json(['status'=>true,'data'=>$data]);
