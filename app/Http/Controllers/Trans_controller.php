@@ -412,6 +412,11 @@ class Trans_controller extends Controller
                 ->where('toko2barang_trans.trans_id',$key->id)
                 ->join('toko_barangs','toko_barangs.id','=','toko2barang_trans.barang_id')
                 ->get();
+            $harga=0;
+            foreach ($key->barang as $value) {
+                $harga=$harga+$value->total_harga;
+            }
+            $key->total_harga=$harga;
         }
         return response()->json(['status'=>true,'data'=>$data]);
     }
