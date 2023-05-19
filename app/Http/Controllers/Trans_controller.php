@@ -328,9 +328,8 @@ class Trans_controller extends Controller
                 'toko_id' => $user->toko_id
             ]);
             foreach ($barang as $key) {
-                $cek_barang=Toko_barang::find($key['id']);
-                // return 1;
-                if(!empty($cek_barang->stok)){
+                $cek_barang=Toko_barang::where('id',$key['id'])->whereNotNull('stok')->first();
+                if($cek_barang){
                     if($cek_barang->stok < $key['banyak']){
                         return response()->json(['status'=>false,'message'=>'Stok barang ada yang kurang']);
                     }
