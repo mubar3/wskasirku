@@ -6,6 +6,8 @@ use Validator;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Toko_tran;
+use App\Models\Toko2_tran;
+use App\Models\toko2barang_tran;
 use App\Models\Toko_barang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -300,5 +302,87 @@ class Trans_controller extends Controller
                 ->join('toko_barangs','toko_barangs.id','=','toko_trans.barang_id')
                 ->get(),
         ]);
+    }
+
+    public function pembelian(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+            'nama' => 'required',
+            'barang' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        $barang=json_decode($data->barang,true);
+        // return response()->json(['status'=>false,'message'=>$barang]);
+        
+        DB::beginTransaction();
+        try {
+            $insert=Toko2_tran::create([
+                'nama' => $data->nama,
+                'toko_id' => $user->toko_id
+            ]);
+            foreach ($barang as $key) {
+                toko2barang_tran::create([
+                    'trans_id' => $insert->id,
+                    'barang_id' => $key['id'],
+                    'jumlah' => $key['banyak'],
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['status'=>true,'message'=>'Berhasil']);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['status'=>false,'message'=>'Terjadi Kesalahan dalam penyimpanan data']);
+        }
+    }
+
+    public function get_barang_new(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        $barang=Toko_barang::select(
+            '*',
+            DB::raw("CASE WHEN foto = '' THEN CONCAT('".url('/storage/barang')."','/',foto) ELSE '' END AS foto")
+            )
+            ->where('toko_id',$user->toko_id)
+            ->where('status','y')
+            ->orderBy('nama','asc')
+            ->get();
+
+        if(!empty($data->tanggal_awal)){
+            foreach ($barang as $key) {
+                $key->tambah=(int)((Toko2barang_tran::select(
+                    DB::raw('sum(toko2barang_trans.jumlah) as jumlah')
+                )
+                ->where('toko2barang_trans.barang_id',$key->id)
+                ->where('toko2_trans.toko_id',$user->toko_id)
+                ->whereBetween('toko2barang_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
+                ->join('toko2_trans','toko2_trans.id','=','toko2barang_trans.trans_id')
+                ->first())->jumlah);
+
+                $key->kurang=0;
+                $key->status=$key->status == 'y' ? true : false;
+            }
+        }else{
+            foreach ($barang as $key) {
+                $key->status=$key->status == 'y' ? true : false;
+            }
+        }
+        return response()->json(['status'=>true,'message'=>'sukses','data'=>$barang]);
     }
 }
