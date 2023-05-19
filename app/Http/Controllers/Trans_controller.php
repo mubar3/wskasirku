@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Toko_tran;
 use App\Models\Toko2_tran;
-use App\Models\toko2barang_tran;
+use App\Models\Toko2barang_tran;
 use App\Models\Toko_barang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
