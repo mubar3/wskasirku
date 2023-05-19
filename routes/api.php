@@ -34,3 +34,4 @@ Route::post('/add_stok', [App\Http\Controllers\Trans_controller::class, 'add_sto
 Route::post('/remove_stok', [App\Http\Controllers\Trans_controller::class, 'remove_stok']);
 Route::post('/detail_penjualan', [App\Http\Controllers\Trans_controller::class, 'detail_penjualan']);
 Route::post('/pembelian', [App\Http\Controllers\Trans_controller::class, 'pembelian']);
+Route::post('/get_transaksi', [App\Http\Controllers\Trans_controller::class, 'get_transaksi']);

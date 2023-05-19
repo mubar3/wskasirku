@@ -385,4 +385,34 @@ class Trans_controller extends Controller
         }
         return response()->json(['status'=>true,'message'=>'sukses','data'=>$barang]);
     }
+
+    public function get_transaksi(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+            'tanggal_awal' => 'required',
+            'tanggal_akhir' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+
+        $data=Toko2_tran::whereBetween('toko2_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])->get();
+        foreach ($data as $key) {
+            $key->barang=Toko2barang_tran::select(
+                    'toko2barang_trans.*',
+                    'toko_barangs.nama',
+                    'toko_barangs.harga',
+                    DB::raw('toko_barangs.harga * toko2barang_trans.jumlah as total_harga')
+                )
+                ->where('toko2barang_trans.trans_id',$key->id)
+                ->join('toko_barangs','toko_barangs.id','=','toko2barang_trans.barang_id')
+                ->get();
+        }
+        return response()->json(['status'=>true,'data'=>$data]);
+    }
 }
