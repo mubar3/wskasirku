@@ -304,6 +304,48 @@ class Trans_controller extends Controller
         ]);
     }
 
+    public function detail_penjualan_new(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+            'tanggal_awal' => 'required',
+            'tanggal_akhir' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        $data->tanggal_akhir=Carbon::parse($data->tanggal_akhir)->addDay();
+        $penjualan_tambah=(int)((Toko2barang_tran::select(
+                    DB::raw('sum(toko2barang_trans.jumlah) as jumlah')
+                )
+                ->where('toko2_trans.toko_id',$user->toko_id)
+                ->whereBetween('toko2barang_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
+                ->join('toko2_trans','toko2_trans.id','=','toko2barang_trans.trans_id')
+                ->first())->jumlah);
+
+        return response()->json([
+            'status'=>true,
+            'message'=>'Berhasil',
+            'tambah'=>$penjualan_tambah,
+            'kurang'=>0,
+            'total'=>$penjualan_tambah,
+            'detail'=>Toko2barang_tran::select(
+                    'toko2barang_trans.*',
+                    'toko_barangs.nama',
+                    'toko_barangs.harga',
+                )
+                ->where('toko2_trans.toko_id',$user->toko_id)
+                ->whereBetween('toko2barang_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
+                ->join('toko2_trans','toko2_trans.id','=','toko2barang_trans.trans_id')
+                ->join('toko_barangs','toko_barangs.id','=','toko2barang_trans.barang_id')
+                ->get(),
+        ]);
+    }
+
     public function pembelian(Request $data)
     {
         $validator = Validator::make($data->all(),[
