@@ -411,8 +411,13 @@ class Trans_controller extends Controller
             DB::raw("CASE WHEN foto = '' THEN CONCAT('".url('/storage/barang')."','/',foto) ELSE '' END AS foto")
             )
             ->where('toko_id',$user->toko_id)
-            ->where('status','y')
-            ->orderBy('nama','asc')
+            ->where('status','y');
+            
+        if(isset($data->cari) && !empty($data->cari)){
+            $barang=$barang->where('nama','like','%'.$data->cari.'%')
+                    ->orwhere('harga','like','%'.$data->cari.'%');
+        }
+        $barang=$barang->orderBy('nama','asc')
             ->get();
 
         if(!empty($data->tanggal_awal)){
