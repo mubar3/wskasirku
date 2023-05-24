@@ -370,7 +370,9 @@ class Trans_controller extends Controller
                 'toko_id' => $user->toko_id
             ]);
             foreach ($barang as $key) {
-                $cek_barang=Toko_barang::where('id',$key['id'])->whereNotNull('stok')->first();
+                $barang=Toko_barang::where('id',$key['id']);
+                $data_barang=$barang->first();
+                $cek_barang=$barang->whereNotNull('stok')->first();
                 if($cek_barang){
                     if($cek_barang->stok < $key['banyak']){
                         return response()->json(['status'=>false,'message'=>'Stok barang ada yang kurang']);
@@ -383,6 +385,7 @@ class Trans_controller extends Controller
                     'trans_id' => $insert->id,
                     'barang_id' => $key['id'],
                     'jumlah' => $key['banyak'],
+                    'harga' => $data_barang->harga,
                 ]);
             }
 
@@ -463,7 +466,8 @@ class Trans_controller extends Controller
                     'toko2barang_trans.*',
                     'toko_barangs.nama',
                     'toko_barangs.harga',
-                    DB::raw('toko_barangs.harga * toko2barang_trans.jumlah as total_harga')
+                    // DB::raw('toko_barangs.harga * toko2barang_trans.jumlah as total_harga')
+                    DB::raw('toko2barang_trans.harga * toko2barang_trans.jumlah as total_harga')
                 )
                 ->where('toko2barang_trans.trans_id',$key->id)
                 ->join('toko_barangs','toko_barangs.id','=','toko2barang_trans.barang_id')
