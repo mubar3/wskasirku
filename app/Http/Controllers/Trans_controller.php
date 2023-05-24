@@ -385,7 +385,7 @@ class Trans_controller extends Controller
                     'trans_id' => $insert->id,
                     'barang_id' => $key['id'],
                     'jumlah' => $key['banyak'],
-                    'harga' => $data_barang->harga,
+                    'harga' => !empty($key['harga']) ? $key['harga'] : $data_barang->harga,
                 ]);
             }
 
@@ -465,7 +465,8 @@ class Trans_controller extends Controller
             $key->barang=Toko2barang_tran::select(
                     'toko2barang_trans.*',
                     'toko_barangs.nama',
-                    'toko_barangs.harga',
+                    // 'toko_barangs.harga',
+                    'toko2barang_trans.harga',
                     // DB::raw('toko_barangs.harga * toko2barang_trans.jumlah as total_harga')
                     DB::raw('toko2barang_trans.harga * toko2barang_trans.jumlah as total_harga')
                 )
