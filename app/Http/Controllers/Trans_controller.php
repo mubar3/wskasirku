@@ -460,7 +460,12 @@ class Trans_controller extends Controller
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
 
-        $data=Toko2_tran::whereBetween('toko2_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])->get();
+        $data=Toko2_tran::select(
+                '*',
+                DB::raw('DATE_FORMAT(created_at, "%d %M %Y") as tanggal'),
+                DB::raw('DATE_FORMAT(created_at, "%H:%i") as waktu'),
+            )
+            ->whereBetween('toko2_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])->get();
         foreach ($data as $key) {
             $key->barang=Toko2barang_tran::select(
                     'toko2barang_trans.*',
