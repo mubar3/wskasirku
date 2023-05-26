@@ -385,7 +385,8 @@ class Trans_controller extends Controller
                     'trans_id' => $insert->id,
                     'barang_id' => $key['id'],
                     'jumlah' => $key['banyak'],
-                    'harga' => !empty($key['harga']) ? $key['harga'] : $data_barang->harga,
+                    // 'harga' => !empty($key['harga']) ? $key['harga'] : $data_barang->harga,
+                    'harga' =>  $key['harga'],
                 ]);
             }
 
