@@ -63,6 +63,9 @@ class Auth_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Password salah']);
         }
+        if($user->status == 'n'){
+            return response()->json(['status'=>false,'message'=>'User nonaktif']);
+        }
         $token=$this->get_session();
         $user->update([
             'session' => $token

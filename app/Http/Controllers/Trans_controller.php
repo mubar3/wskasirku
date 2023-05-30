@@ -367,7 +367,8 @@ class Trans_controller extends Controller
         try {
             $insert=Toko2_tran::create([
                 'nama' => $data->nama,
-                'toko_id' => $user->toko_id
+                'toko_id' => $user->toko_id,
+                'userid' => $user->id
             ]);
             foreach ($barang as $key) {
                 $barang=Toko_barang::where('id',$key['id']);
@@ -466,7 +467,9 @@ class Trans_controller extends Controller
                 DB::raw('DATE_FORMAT(created_at, "%d %M %Y") as tanggal'),
                 DB::raw('DATE_FORMAT(created_at, "%H:%i") as waktu'),
             )
-            ->whereBetween('toko2_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])->get();
+            ->whereBetween('toko2_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
+            ->where('toko2_trans.toko_id',$user->toko_id)
+            ->get();
         foreach ($data as $key) {
             $key->barang=Toko2barang_tran::select(
                     'toko2barang_trans.*',
