@@ -69,10 +69,11 @@ class Controller extends BaseController
 
         $total_gaji=0;
         foreach ($data_karyawan as $key) {
+            $start_date=Carbon::parse($data->tanggal_awal);
             $key['masuk'] = 0;
             $key['libur'] = 0;
-            while($start <= $end){
-                $cek_absen=Absen::where('tanggal',$start->toDateString())
+            while($start_date <= $end){
+                $cek_absen=Absen::where('tanggal',$start_date->toDateString())
                 ->where('userid',$key->id)
                 ->where('status','masuk')
                 ->first();
@@ -82,7 +83,7 @@ class Controller extends BaseController
                     $key['libur'] = $key['libur'] + 1;
                 }
                 
-                $start->addDay();
+                $start_date->addDay();
             }
             $key['gaji']=$key['masuk'] * $user->gaji_harian;
             $total_gaji=$total_gaji + $key['gaji'];
