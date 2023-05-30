@@ -103,6 +103,8 @@ class Controller extends BaseController
             'status'=>true,
             'hasil'=>$status,
             'keuntungan_bersih'=>$keuntungan_bersih,
+            'restok'=>$total_penjualan-$keuntungan_kotor,
+            'penjualan'=>$total_penjualan,
             'keuntungan_kotor'=>$keuntungan_kotor,
             'biaya_sewa'=>$biaya_sewa,
             'total_gaji'=>$total_gaji,
