@@ -18,7 +18,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/report', [App\Http\Controllers\Controller::class, 'report']);
 
 Route::post('/get_data', [App\Http\Controllers\Auth_controller::class, 'get_data']);
 Route::post('/ubah_data', [App\Http\Controllers\Auth_controller::class, 'ubah_data']);
@@ -42,3 +41,9 @@ Route::post('/get_transaksi', [App\Http\Controllers\Trans_controller::class, 'ge
 
 Route::post('/add_absensi', [App\Http\Controllers\Absen_controller::class, 'add_absensi']);
 Route::post('/get_absen', [App\Http\Controllers\Absen_controller::class, 'get_absen']);
+
+Route::post('/report', [App\Http\Controllers\Report_controller::class, 'report']);
+Route::post('/save_report', [App\Http\Controllers\Report_controller::class, 'save_report']);
+Route::post('/get_report', [App\Http\Controllers\Report_controller::class, 'get_report']);
+Route::post('/del_report', [App\Http\Controllers\Report_controller::class, 'del_report']);
+Route::post('/endis_gaji', [App\Http\Controllers\Report_controller::class, 'endis_gaji']);
