@@ -41,6 +41,7 @@ Route::post('/get_transaksi', [App\Http\Controllers\Trans_controller::class, 'ge
 
 Route::post('/add_absensi', [App\Http\Controllers\Absen_controller::class, 'add_absensi']);
 Route::post('/get_absen', [App\Http\Controllers\Absen_controller::class, 'get_absen']);
+Route::post('/get_absen_all', [App\Http\Controllers\Absen_controller::class, 'get_absen_all']);
 
 Route::post('/report', [App\Http\Controllers\Report_controller::class, 'report']);
 Route::post('/save_report', [App\Http\Controllers\Report_controller::class, 'save_report']);
