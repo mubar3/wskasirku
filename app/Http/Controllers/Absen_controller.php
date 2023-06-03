@@ -85,10 +85,12 @@ class Absen_controller extends Controller
         }
         
         $data_absen=Absen::select(
-                '*',
-                DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
+                'absens.*',
+                'users.name',
+                DB::raw("CASE WHEN absens.foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',absens.foto) END AS foto"),
             )
-            ->whereBetween('tanggal', [$data->tanggal_awal . ' 00:00:00', $data->tanggal_akhir . ' 23:59:59'])
+            ->join('users','users.id','=','absens.userid')
+            ->whereBetween('absens.tanggal', [$data->tanggal_awal . ' 00:00:00', $data->tanggal_akhir . ' 23:59:59'])
             ->get();
         return response()->json(['status'=>true,'data'=>$data_absen]);
     }
