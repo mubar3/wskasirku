@@ -84,14 +84,82 @@ class Absen_controller extends Controller
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
         
-        $data_absen=Absen::select(
-                'absens.*',
-                'users.name',
-                DB::raw("CASE WHEN absens.foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',absens.foto) END AS foto"),
-            )
-            ->join('users','users.id','=','absens.userid')
-            ->whereBetween('absens.tanggal', [$data->tanggal_awal . ' 00:00:00', $data->tanggal_akhir . ' 23:59:59'])
-            ->get();
+        $data_absen=[];
+        $start_date=Carbon::parse($data->tanggal_awal);
+        $key['masuk'] = 0;
+        $key['libur'] = 0;
+        while($start_date <= $data->tanggal_akhir){
+            
+            $data_user=User::where('status','y')
+                ->where('toko_id',$user->toko_id)
+                ->where('jenis','karyawan')
+                ->get();
+            foreach ($data_user as $key) {
+                $absen=Absen::select(
+                        '*',
+                        DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
+                    )
+                    ->where('tanggal',$start_date->toDateString())
+                    ->first();
+                if($absen){
+                    $absen['name']=$key->name;
+                    $absen['tanggal'] = $this->convertToIndonesianDate($start_date->toDateString());
+                    $data_absen[]=$absen;
+                }else{
+                    $data_absen[]=[
+                        'id' => null,
+                        'userid' => $key->id,
+                        'tanggal' => $this->convertToIndonesianDate($start_date->toDateString()),
+                        'foto' => null,
+                        'status' => 'libur',
+                        'created_at' => null,
+                        'updated_at' => null,
+                        'name' => $key->name,
+                    ];
+                }
+            }
+
+            $start_date->addDay();
+        }
+
         return response()->json(['status'=>true,'data'=>$data_absen]);
+    }
+
+    function convertToIndonesianDate($date) {
+        $days = array(
+            'Sunday' => 'Minggu',
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu'
+        );
+
+        $months = array(
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        );
+    
+        $dateObj = Carbon::parse($date);
+        $dayOfWeek = $dateObj->format('l');
+    
+        $day = $dateObj->format('d');
+        $month = $months[(int)$dateObj->format('m')];
+        $year = $dateObj->format('Y');
+    
+        $indonesianDate = $days[$dayOfWeek] . ', ' . $day . ' ' . $month . ' ' . $year;
+    
+        return $indonesianDate;
     }
 }
