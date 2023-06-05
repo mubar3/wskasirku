@@ -88,7 +88,7 @@ class Absen_controller extends Controller
         $start_date=Carbon::parse($data->tanggal_awal);
         $key['masuk'] = 0;
         $key['libur'] = 0;
-        while($start_date <= $data->tanggal_akhir){
+        while($start_date <= Carbon::parse($data->tanggal_akhir)){
             
             $data_user=User::where('status','y')
                 ->where('toko_id',$user->toko_id)
@@ -100,6 +100,7 @@ class Absen_controller extends Controller
                         DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
                     )
                     ->where('tanggal',$start_date->toDateString())
+                    ->where('userid',$key->id)
                     ->first();
                 if($absen){
                     $absen['name']=$key->name;
