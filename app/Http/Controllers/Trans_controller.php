@@ -9,6 +9,8 @@ use App\Models\Toko_tran;
 use App\Models\Toko2_tran;
 use App\Models\Toko2barang_tran;
 use App\Models\Toko_barang;
+use App\Models\Bahan;
+use App\Models\Stok_bahan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -382,6 +384,17 @@ class Trans_controller extends Controller
                         'stok' => $cek_barang->stok - $key['banyak']
                     ]);
                 }
+
+                // kurangi stok bahan
+                $bahan2=Stok_bahan::where('barang_id',$key['id'])->get();
+                foreach ($bahan2 as $value) {
+                    $cek_bahan=Bahan::find($value->bahan_id);
+                    $stok_akhir=(int)$cek_bahan->stok_gr - ((int)$value->takar_gr * $key['banyak']);
+                    $cek_bahan->update([
+                        'stok_gr' => $stok_akhir
+                    ]);
+                }
+
                 toko2barang_tran::create([
                     'trans_id' => $insert->id,
                     'barang_id' => $key['id'],

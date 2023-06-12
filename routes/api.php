@@ -48,3 +48,7 @@ Route::post('/save_report', [App\Http\Controllers\Report_controller::class, 'sav
 Route::post('/get_report', [App\Http\Controllers\Report_controller::class, 'get_report']);
 Route::post('/del_report', [App\Http\Controllers\Report_controller::class, 'del_report']);
 Route::post('/endis_gaji', [App\Http\Controllers\Report_controller::class, 'endis_gaji']);
+
+Route::post('/update_bahan', [App\Http\Controllers\Stok_controller::class, 'update_bahan']);
+Route::post('/add_bahan', [App\Http\Controllers\Stok_controller::class, 'add_bahan']);
+Route::post('/get_bahan', [App\Http\Controllers\Stok_controller::class, 'get_bahan']);
