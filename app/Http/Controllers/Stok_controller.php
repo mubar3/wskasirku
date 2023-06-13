@@ -42,7 +42,7 @@ class Stok_controller extends Controller
             $bahan->update([
                 'stok_gr' => $total,
                 'nama' => $data->nama,
-                'ket' => $data->ket,
+                // 'ket' => $data->ket,
             ]);
 
             DB::commit();
