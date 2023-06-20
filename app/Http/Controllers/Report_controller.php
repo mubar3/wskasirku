@@ -49,7 +49,7 @@ class Report_controller extends Controller
         // cek karyawan
         $data_karyawan=User::select('id','name')
             ->where('toko_id',$user->toko_id)
-            ->where('status','y')
+            // ->where('status','y')
             ->where('jenis','karyawan')
             ->get();
 
