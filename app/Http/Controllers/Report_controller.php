@@ -54,6 +54,7 @@ class Report_controller extends Controller
             ->get();
 
         $total_gaji=0;
+        $karyawan=[];
         foreach ($data_karyawan as $key) {
             $start_date=Carbon::parse($data->tanggal_awal);
             $key['masuk'] = 0;
@@ -72,6 +73,9 @@ class Report_controller extends Controller
                 $start_date->addDay();
             }
             $key['gaji']=$key['masuk'] * $user->gaji_harian;
+            if(!empty($key['masuk'])){
+                $karyawan[]=$key;
+            }
             $total_gaji=$total_gaji + $key['gaji'];
         }
 
@@ -94,7 +98,7 @@ class Report_controller extends Controller
             'keuntungan_kotor'=>$keuntungan_kotor,
             'biaya_sewa'=>$biaya_sewa,
             'total_gaji'=>$total_gaji,
-            'data_karyawan'=>$data_karyawan,
+            'data_karyawan'=>$karyawan,
         ]);
     }
 
