@@ -101,7 +101,7 @@ class Report_controller extends Controller
             'hasil'=>$status,
             'keuntungan_bersih'=>$keuntungan_bersih,
             'restok'=>$total_penjualan-$keuntungan_kotor+$restok,
-            'penjualan'=>$total_penjualan,
+            'penjualan'=>$total_penjualan+$restok,
             'keuntungan_kotor'=>$keuntungan_kotor,
             'biaya_sewa'=>$biaya_sewa,
             'total_gaji'=>$total_gaji,
