@@ -33,13 +33,34 @@ class Absen_controller extends Controller
         $safeName = 'absen_'.$user->id.'_'.strtotime(Carbon::now()).'.jpg';
         $this->base64Image_link($data->foto,public_path('/storage/absen'),$safeName);
         $data['foto']=$safeName;
-        
-        Absen::create([
-            'userid' => $user->id,
-            'tanggal' => $data->tanggal,
-            'status' => $data->status,
-            'foto' => $data->foto,
-        ]);
+        $cek=Absen::where('userid',$user->id)
+            ->where('tanggal',$data->tanggal)
+            ->whereNull('updated_at')
+            ->first();
+        if($cek){
+            $cek->update([
+                'userid' => $user->id,
+                'tanggal' => $data->tanggal,
+                'status' => $data->status,
+                'foto' => $data->foto,
+                'updated_at' => Carbon::now(),
+            ]);
+        }else{
+            $cek=Absen::where('userid',$user->id)
+                ->where('tanggal',$data->tanggal)
+                ->first();
+            if(!$cek){
+                Absen::create([
+                    'userid' => $user->id,
+                    'tanggal' => $data->tanggal,
+                    'status' => $data->status,
+                    'foto' => $data->foto,
+                    'created_at' => Carbon::now(),
+                ]);
+            }else{
+                return response()->json(['status'=>false,'message'=>'Sudah absen masuk dan pulang']);
+            }
+        }
         return response()->json(['status'=>true,'message'=>'Berhasil']);
         
     }
