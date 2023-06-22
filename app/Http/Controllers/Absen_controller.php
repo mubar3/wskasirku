@@ -42,7 +42,7 @@ class Absen_controller extends Controller
                 'userid' => $user->id,
                 'tanggal' => $data->tanggal,
                 'status' => $data->status,
-                'foto' => $data->foto,
+                'foto2' => $data->foto,
                 'updated_at' => Carbon::now(),
             ]);
         }else{
