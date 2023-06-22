@@ -38,8 +38,15 @@ class Report_controller extends Controller
         }
         $response=json_decode(json_encode((new Trans_controller)->get_transaksi($data)));
         $total_penjualan=0;
+        $restok=0;
         foreach ($response->original->data as $key) {
-            $total_penjualan=$total_penjualan + $key->total_harga;
+            foreach ($key->barang as $value) {
+                if($value->is_produk === 'y'){
+                    $total_penjualan=$total_penjualan + $value->total_harga;
+                }else{
+                    $restok=$restok + $value->total_harga;
+                }
+            }
         }
 
         $start = Carbon::parse($data->tanggal_awal);
@@ -93,7 +100,7 @@ class Report_controller extends Controller
             'status'=>true,
             'hasil'=>$status,
             'keuntungan_bersih'=>$keuntungan_bersih,
-            'restok'=>$total_penjualan-$keuntungan_kotor,
+            'restok'=>$total_penjualan-$keuntungan_kotor+$restok,
             'penjualan'=>$total_penjualan,
             'keuntungan_kotor'=>$keuntungan_kotor,
             'biaya_sewa'=>$biaya_sewa,

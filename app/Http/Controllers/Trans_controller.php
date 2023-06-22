@@ -338,7 +338,7 @@ class Trans_controller extends Controller
             'detail'=>Toko2barang_tran::select(
                     'toko2barang_trans.*',
                     'toko_barangs.nama',
-                    'toko_barangs.harga',
+                    'toko2barang_trans.harga',
                 )
                 ->where('toko2_trans.toko_id',$user->toko_id)
                 ->whereBetween('toko2barang_trans.created_at',[$data->tanggal_awal,Carbon::parse($data->tanggal_akhir)->addDay()])
@@ -487,6 +487,7 @@ class Trans_controller extends Controller
             $key->barang=Toko2barang_tran::select(
                     'toko2barang_trans.*',
                     'toko_barangs.nama',
+                    'toko_barangs.is_produk',
                     // 'toko_barangs.harga',
                     'toko2barang_trans.harga',
                     // DB::raw('toko_barangs.harga * toko2barang_trans.jumlah as total_harga')
