@@ -83,6 +83,7 @@ class Absen_controller extends Controller
         $data_absen=Absen::select(
                 '*',
                 DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
+                DB::raw("CASE WHEN foto2 = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto2) END AS foto2"),
             )
             ->where('userid',$user->id)
             ->whereBetween('tanggal', [$data->tanggal_awal . ' 00:00:00', $data->tanggal_akhir . ' 23:59:59'])
@@ -119,6 +120,7 @@ class Absen_controller extends Controller
                 $absen=Absen::select(
                         '*',
                         DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
+                        DB::raw("CASE WHEN foto2 = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto2) END AS foto2"),
                     )
                     ->where('tanggal',$start_date->toDateString())
                     ->where('userid',$key->id)
