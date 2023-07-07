@@ -266,4 +266,45 @@ class Report_controller extends Controller
             return response()->json(['status'=>false,'message'=>'Terjadi Kesalahan dalam penyimpanan data']);
         }
     }
+
+    public function endis_gaji_date(Request $data)
+    {
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+            'tgl_awal' => 'required',
+            'tgl_akhir' => 'required',
+            'id_karyawan' => 'required',
+            'jenis' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::join('tokos','tokos.id','=','users.toko_id')
+            ->where('users.session',$data->session)
+            ->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        
+        DB::beginTransaction();
+        try {
+            if($data->jenis == 'sudah'){
+                Gaji_report::whereDate('created_at','>=',$data->tgl_awal)
+                    ->whereDate('created_at','<=',$data->tgl_akhir)
+                    ->where('user_id',$data->id_karyawan)
+                    ->update(['bayar' => 'y']);
+                }else if($data->jenis == 'belum'){
+                Gaji_report::whereDate('created_at','>=',$data->tgl_awal)
+                    ->whereDate('created_at','<=',$data->tgl_akhir)
+                    ->where('user_id',$data->id_karyawan)
+                    ->update(['bayar' => 'n']);
+            }
+
+            DB::commit();
+            return response()->json(['status'=>true,'message'=>'Berhasil']);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['status'=>false,'message'=>'Terjadi Kesalahan dalam penyimpanan data']);
+        }
+    }
 }
