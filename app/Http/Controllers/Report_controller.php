@@ -319,15 +319,17 @@ class Report_controller extends Controller
         DB::beginTransaction();
         try {
             if($data->jenis == 'sudah'){
-                Gaji_report::whereDate('created_at','>=',$data->tgl_awal)
-                    ->whereDate('created_at','<=',$data->tgl_akhir)
-                    ->where('user_id',$data->id_karyawan)
-                    ->update(['bayar' => 'y']);
+                Gaji_report::join('reports','reports.id','=','gaji_reports.report_id')
+                    ->whereDate('reports.tgl_awal','>=',$data->tgl_awal)
+                    ->whereDate('reports.tgl_akhir','<=',$data->tgl_akhir)
+                    ->where('gaji_reports.user_id',$data->id_karyawan)
+                    ->update(['gaji_reports.bayar' => 'y']);
                 }else if($data->jenis == 'belum'){
-                Gaji_report::whereDate('created_at','>=',$data->tgl_awal)
-                    ->whereDate('created_at','<=',$data->tgl_akhir)
-                    ->where('user_id',$data->id_karyawan)
-                    ->update(['bayar' => 'n']);
+                Gaji_report::join('reports','reports.id','=','gaji_reports.report_id')
+                    ->whereDate('reports.tgl_awal','>=',$data->tgl_awal)
+                    ->whereDate('reports.tgl_akhir','<=',$data->tgl_akhir)
+                    ->where('gaji_reports.user_id',$data->id_karyawan)
+                    ->update(['gaji_reports.bayar' => 'n']);
             }
 
             DB::commit();
