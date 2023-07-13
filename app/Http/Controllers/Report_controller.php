@@ -77,16 +77,26 @@ class Report_controller extends Controller
                     // hitung gaji
                     $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk);
                     $jam_masuk=Carbon::parse($cek_absen->created_at);
-                    
+
                     // ketika tidak absen pulang
                     if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
-                        // ketika telat 1 jam
+                        // ketika telat kurang dari 1 jam
                         if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours()){
-                            $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk_toko);
+                            // ketika pulang awal
+                            if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
+                                $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
+                            }else{
+                                $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk_toko);
+                            }
                         }
                         // ketika telat lebih dari 1 jam
                         else{
-                            $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk);
+                            // ketika pulang awal
+                            if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
+                                $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
+                            }else{
+                                $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk);
+                            }
                         }
                     }else{
                         $durasi_kerja = (1/3)*$user->jam_kerja;
