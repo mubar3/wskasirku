@@ -66,6 +66,7 @@ class Report_controller extends Controller
             $start_date=Carbon::parse($data->tanggal_awal);
             $key['masuk'] = 0;
             $key['libur'] = 0;
+            $key['gaji']=0;
             while($start_date <= $end){
                 $cek_absen=Absen::where('tanggal',$start_date->toDateString())
                 ->where('userid',$key->id)
@@ -73,13 +74,32 @@ class Report_controller extends Controller
                 ->first();
                 if($cek_absen){
                     $key['masuk'] = $key['masuk'] + 1;
+                    // hitung gaji
+                    $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk);
+                    $jam_masuk=Carbon::parse($cek_absen->created_at);
+                    
+                    // ketika tidak absen pulang
+                    if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
+                        // ketika telat 1 jam
+                        if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours()){
+                            $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk_toko);
+                        }
+                        // ketika telat lebih dari 1 jam
+                        else{
+                            $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk);
+                        }
+                    }else{
+                        $durasi_kerja = (1/3)*$user->jam_kerja;
+                    }
+                    $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja)*$user->gaji_harian);
+                    $key['gaji']=(int)$key['gaji'];
                 }else{
                     $key['libur'] = $key['libur'] + 1;
                 }
                 
                 $start_date->addDay();
             }
-            $key['gaji']=$key['masuk'] * $user->gaji_harian;
+            // $key['gaji']=$key['masuk'] * $user->gaji_harian;
             if(!empty($key['masuk'])){
                 $karyawan[]=$key;
             }
