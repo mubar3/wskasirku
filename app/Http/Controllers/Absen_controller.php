@@ -119,8 +119,8 @@ class Absen_controller extends Controller
             foreach ($data_user as $key) {
                 $absen=Absen::select(
                         '*',
-                        DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
-                        DB::raw("CASE WHEN foto2 = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto2) END AS foto2"),
+                        DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".env('APP_URL')."','/storage/absen/',foto) END AS foto"),
+                        DB::raw("CASE WHEN foto2 = '' THEN NULL ELSE CONCAT('".env('APP_URL')."','/storage/absen/',foto2) END AS foto2"),
                     )
                     ->where('tanggal',$start_date->toDateString())
                     ->where('userid',$key->id)
