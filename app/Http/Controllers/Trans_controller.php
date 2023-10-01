@@ -400,7 +400,7 @@ class Trans_controller extends Controller
                     'barang_id' => $key['id'],
                     'jumlah' => $key['banyak'],
                     // 'harga' => !empty($key['harga']) ? $key['harga'] : $data_barang->harga,
-                    'harga' =>  $key['harga'],
+                    'harga' =>  str_replace([',','.'],'',$key['harga']),
                 ]);
             }
 
