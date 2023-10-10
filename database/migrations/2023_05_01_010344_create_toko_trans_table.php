@@ -16,7 +16,7 @@ class CreateTokoTransTable extends Migration
         Schema::create('toko_trans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('barang_id')->constrained('toko_barangs')->onDelete('cascade');
-            $table->enum('jenis',['tambah','kurang'])->default('tambah');
+            $table->enum('jenis',['tambah','kurang'])->nullable()->default('tambah');
             $table->timestamps();
         });
     }
