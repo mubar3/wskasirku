@@ -11,6 +11,7 @@ use App\Models\Toko2barang_tran;
 use App\Models\Toko_barang;
 use App\Models\Bahan;
 use App\Models\Stok_bahan;
+use App\Models\Casbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -506,5 +507,53 @@ class Trans_controller extends Controller
             $key->total_harga=$harga;
         }
         return response()->json(['status'=>true,'data'=>$data]);
+    }
+
+    public function get_userid(Request $data){
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+
+        $user=User::where('toko_id',$user->toko_id)
+            ->where('tipe','mobile')
+            ->where('status','y')
+            ->where('jenis','karyawan')
+            ->get();
+        return response()->json(['status'=>true,'data'=>$user]);
+    }
+
+    public function add_casbon(Request $data){
+        $validator = Validator::make($data->all(),[
+            'session' => 'required',
+            'userid' => 'required',
+            'banyak' => 'required',
+            'tanggal' => 'required',
+        ]);
+        if($validator->fails()){      
+            return response()->json(['status'=>false,'message'=>$validator->errors()]);
+        }
+        $user=User::where('session',$data->session)->first();
+        if(!$user){
+            return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
+        }
+        
+        $simpan=Casbon::create([
+            'userid' => $data->userid,
+            'banyak' => $data->banyak,
+                'tanggal' => $data->tanggal,
+            ]);
+            
+        if($simpan){
+            return response()->json(['status'=>true,'message'=>'Berhasil simpan']);
+        }else{
+            return response()->json(['status'=>false,'message'=>'Gagal simpan']);
+        }
     }
 }

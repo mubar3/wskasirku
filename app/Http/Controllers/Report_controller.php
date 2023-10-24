@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Absen;
 use App\Models\Report;
 use App\Models\Gaji_report;
+use App\Models\Casbon;
 use Session;
 use Validator;
 use Carbon\Carbon;
@@ -67,6 +68,7 @@ class Report_controller extends Controller
             $key['masuk'] = 0;
             $key['libur'] = 0;
             $key['gaji']=0;
+            $key['kasbon']=0;
             while($start_date <= $end){
                 $cek_absen=Absen::where('tanggal',$start_date->toDateString())
                 ->where('userid',$key->id)
@@ -106,9 +108,19 @@ class Report_controller extends Controller
                 }else{
                     $key['libur'] = $key['libur'] + 1;
                 }
+
+                // hitung kasbon
+                $kasbon=Casbon::select(DB::raw('sum(banyak) as banyak'))
+                    ->whereDate('tanggal',$start_date->toDateString())
+                    ->where('userid',$key->id)
+                    ->first();
+                if($kasbon){
+                    $key['kasbon']+=$kasbon->banyak;
+                }
                 
                 $start_date->addDay();
             }
+            $key['total_gaji_akhir']=$key['gaji']-$key['kasbon'];
             // $key['gaji']=$key['masuk'] * $user->gaji_harian;
             if(!empty($key['masuk'])){
                 $karyawan[]=$key;
@@ -124,7 +136,18 @@ class Report_controller extends Controller
         }else{
             $status='untung';
         }
-        
+
+        // hitung casbon
+        $kasbon=Casbon::select(DB::raw('sum(banyak) as banyak'))
+            ->join('users','users.id','=','casbons.userid')
+            ->where('casbons.tanggal','>=',$data->tanggal_awal)
+            ->where('casbons.tanggal','<=',$data->tanggal_akhir)
+            ->where('users.toko_id',$user->toko_id)
+            ->where('users.tipe','mobile')
+            ->where('users.status','y')
+            ->where('users.jenis','karyawan')
+            ->first();
+        $kasbon=$kasbon->banyak;
         
         return response()->json([
             'status'=>true,
@@ -135,6 +158,8 @@ class Report_controller extends Controller
             'keuntungan_kotor'=>$keuntungan_kotor,
             'biaya_sewa'=>$biaya_sewa,
             'total_gaji'=>$total_gaji,
+            'total_gaji_akhir'=>$total_gaji-$kasbon,
+            'total_kasbon'=>$kasbon,
             'data_karyawan'=>$karyawan,
         ]);
     }
@@ -154,6 +179,7 @@ class Report_controller extends Controller
             // 'total_gaji' => 'required',
             // 'biaya_sewa' => 'required',
             // 'karyawan' => 'required',
+            // 'kasbon' => 'required',
         ]);
         if($validator->fails()){      
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
@@ -177,6 +203,7 @@ class Report_controller extends Controller
             foreach ($karyawan as $key) {
                 Gaji_report::create([
                     'jumlah'    => $key['gaji'],
+                    'kasbon'    => $key['kasbon'],
                     'user_id'   =>  $key['id'],
                     'masuk'   =>  $key['masuk'],
                     'libur'   =>  $key['libur'],
@@ -217,6 +244,7 @@ class Report_controller extends Controller
                 ->where('tgl_akhir','<=',$data->tgl_akhir)
                 ->get();
             foreach ($report as $key) {
+                $key['total_gaji_akhir']=$key->total_gaji - $key->kasbon;
                 $key->karyawan=Gaji_report::select(
                         'gaji_reports.*',
                         'users.name',

@@ -38,6 +38,8 @@ Route::post('/detail_penjualan', [App\Http\Controllers\Trans_controller::class, 
 Route::post('/detail_penjualan_new', [App\Http\Controllers\Trans_controller::class, 'detail_penjualan_new']);
 Route::post('/pembelian', [App\Http\Controllers\Trans_controller::class, 'pembelian']);
 Route::post('/get_transaksi', [App\Http\Controllers\Trans_controller::class, 'get_transaksi']);
+Route::post('/get_userid', [App\Http\Controllers\Trans_controller::class, 'get_userid']);
+Route::post('/add_casbon', [App\Http\Controllers\Trans_controller::class, 'add_casbon']);
 
 Route::post('/add_absensi', [App\Http\Controllers\Absen_controller::class, 'add_absensi']);
 Route::post('/get_absen', [App\Http\Controllers\Absen_controller::class, 'get_absen']);
