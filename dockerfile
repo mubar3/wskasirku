@@ -20,7 +20,7 @@ RUN docker-php-ext-install exif pdo_mysql
 RUN chmod -R 777 /var/www/html/storage
 RUN a2dissite 000-default.conf
 RUN a2ensite wskasirku
-RUN cd /var/www/html && php artisan storage:link  
+RUN cd /var/www/html && php artisan storage:link
 RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
