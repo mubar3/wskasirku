@@ -13,9 +13,9 @@ class AddAbsens extends Migration
      */
     public function up()
     {
-        
+
         Schema::table('absens', function (Blueprint $table) {
-            $table->text('foto')->after('tanggal')->default('');
+            $table->text('foto')->after('tanggal')->nullable('');
         });
     }
 
