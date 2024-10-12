@@ -19,7 +19,7 @@ class CreateAbsensTable extends Migration
             $table->date('tanggal');
             $table->enum('status',['masuk','libur'])->default('masuk');
             $table->timestamps();
-            $table->unique(['userid', 'tanggal']);
+            // $table->unique(['userid', 'tanggal']);
         });
     }
 

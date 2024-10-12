@@ -70,16 +70,28 @@ class Report_controller extends Controller
             $key['gaji']=0;
             $key['kasbon']=0;
             while($start_date <= $end){
-                $cek_absen=Absen::where('tanggal',$start_date->toDateString())
+                $cek_absens=Absen::where('tanggal',$start_date->toDateString())
                 ->where('userid',$key->id)
                 ->where('status','masuk')
-                ->first();
-                if($cek_absen){
+                ->orderBy('created_at')
+                ->get();
+
+                // cek apa ada 2 shift
+                if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
+                    $user->gaji_harian=$user->gaji_harian/2;
+                }
+
+                // if($cek_absen){
+                $shift1=false;
+                foreach ($cek_absens as $cek_absen) {
                     // hitung gaji
                     $key['masuk'] = $key['masuk'] + 1;
 
                     // ketika shift 1 / tidak ada shift 2
-                    if($cek_absen->created_at > $user->jam_masuk && ( $cek_absen->created_at < $user->jam_masuk2 || $user->jam_masuk2 == '' || $user->jam_masuk2 == null  ) ){
+                    // if(Carbon::parse($cek_absen->created_at)->toTimeString() > $user->jam_masuk && ( Carbon::parse($cek_absen->created_at)->toTimeString() < $user->jam_masuk2 || $user->jam_masuk2 == '' || $user->jam_masuk2 == null  ) ){
+                    if(!$shift1){
+                        $shift1=true;
+
                         $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk);
                         $jam_masuk=Carbon::parse($cek_absen->created_at);
 
@@ -140,7 +152,11 @@ class Report_controller extends Controller
                         $key['gaji']=(int)$key['gaji'];
                     }
 
-                }else{
+                // }else{
+                //     $key['libur'] = $key['libur'] + 1;
+                // }
+                }
+                if(count($cek_absens) < 1){
                     $key['libur'] = $key['libur'] + 1;
                 }
 
