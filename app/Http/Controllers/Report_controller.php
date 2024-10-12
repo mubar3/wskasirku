@@ -28,7 +28,7 @@ class Report_controller extends Controller
             'tanggal_akhir' => 'required',
             'keuntungan' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::join('tokos','tokos.id','=','users.toko_id')
@@ -75,36 +75,71 @@ class Report_controller extends Controller
                 ->where('status','masuk')
                 ->first();
                 if($cek_absen){
-                    $key['masuk'] = $key['masuk'] + 1;
                     // hitung gaji
-                    $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk);
-                    $jam_masuk=Carbon::parse($cek_absen->created_at);
+                    $key['masuk'] = $key['masuk'] + 1;
 
-                    // ketika tidak absen pulang
-                    if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
-                        // ketika telat kurang dari 1 jam
-                        if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours()){
-                            // ketika pulang awal
-                            if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
-                                $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
-                            }else{
-                                $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk_toko);
+                    // ketika shift 1 / tidak ada shift 2
+                    if($cek_absen->created_at > $user->jam_masuk && ( $cek_absen->created_at < $user->jam_masuk2 || $user->jam_masuk2 == '' || $user->jam_masuk2 == null  ) ){
+                        $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk);
+                        $jam_masuk=Carbon::parse($cek_absen->created_at);
+
+                        if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
+                            // ketika telat kurang dari 1 jam akan hitung mulai waktu buka toko
+                            if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours()){
+                                // ketika pulang awal
+                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
+                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
+                                }else{
+                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk_toko);
+                                }
                             }
-                        }
-                        // ketika telat lebih dari 1 jam
-                        else{
-                            // ketika pulang awal
-                            if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
-                                $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
-                            }else{
-                                $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk);
+                            // ketika telat lebih dari 1 jam akan hitung sesuai waktu masuk
+                            else{
+                                // ketika pulang awal
+                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
+                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
+                                }else{
+                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk);
+                                }
                             }
+                        }else{
+                            // ketika tidak absen pulang jam kerja jadi 1/3
+                            $durasi_kerja = (1/3)*$user->jam_kerja;
                         }
+                        $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja)*$user->gaji_harian);
+                        $key['gaji']=(int)$key['gaji'];
                     }else{
-                        $durasi_kerja = (1/3)*$user->jam_kerja;
+                        $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2);
+                        $jam_masuk=Carbon::parse($cek_absen->created_at);
+
+                        // shift 2
+                        if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
+                            // ketika telat kurang dari 1 jam akan hitung mulai waktu buka toko
+                            if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours()){
+                                // ketika pulang awal
+                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)){
+                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
+                                }else{
+                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)->diffInHours($jam_masuk_toko);
+                                }
+                            }
+                            // ketika telat lebih dari 1 jam akan hitung sesuai waktu masuk
+                            else{
+                                // ketika pulang awal
+                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)){
+                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
+                                }else{
+                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)->diffInHours($jam_masuk);
+                                }
+                            }
+                        }else{
+                            // ketika tidak absen pulang jam kerja jadi 1/3
+                            $durasi_kerja = (1/3)*$user->jam_kerja2;
+                        }
+                        $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja2)*$user->gaji_harian);
+                        $key['gaji']=(int)$key['gaji'];
                     }
-                    $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja)*$user->gaji_harian);
-                    $key['gaji']=(int)$key['gaji'];
+
                 }else{
                     $key['libur'] = $key['libur'] + 1;
                 }
@@ -117,7 +152,7 @@ class Report_controller extends Controller
                 if($kasbon){
                     $key['kasbon']+=$kasbon->banyak;
                 }
-                
+
                 $start_date->addDay();
             }
             $key['total_gaji_akhir']=$key['gaji']-$key['kasbon'];
@@ -148,7 +183,7 @@ class Report_controller extends Controller
             ->where('users.jenis','karyawan')
             ->first();
         $kasbon=$kasbon->banyak;
-        
+
         return response()->json([
             'status'=>true,
             'hasil'=>$status,
@@ -181,7 +216,7 @@ class Report_controller extends Controller
             // 'karyawan' => 'required',
             // 'kasbon' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::join('tokos','tokos.id','=','users.toko_id')
@@ -190,7 +225,7 @@ class Report_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         $karyawan=json_decode($data->karyawan,true);
         DB::beginTransaction();
         try {
@@ -199,7 +234,7 @@ class Report_controller extends Controller
             $data['user_id']=$user->id;
             $data['toko_id']=$user->toko_id;
             $report=Report::create($data->all());
-            
+
             foreach ($karyawan as $key) {
                 Gaji_report::create([
                     'jumlah'    => $key['gaji'],
@@ -227,7 +262,7 @@ class Report_controller extends Controller
             'tgl_awal' => 'required',
             'tgl_akhir' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::join('tokos','tokos.id','=','users.toko_id')
@@ -236,7 +271,7 @@ class Report_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         DB::beginTransaction();
         try {
             $report=Report::where('toko_id',$data->toko_id)
@@ -268,7 +303,7 @@ class Report_controller extends Controller
             'session' => 'required',
             'id_report' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::join('tokos','tokos.id','=','users.toko_id')
@@ -277,7 +312,7 @@ class Report_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         $karyawan=json_decode($data->karyawan,true);
         DB::beginTransaction();
         try {
@@ -298,7 +333,7 @@ class Report_controller extends Controller
             'id_gajireport' => 'required',
             'jenis' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::join('tokos','tokos.id','=','users.toko_id')
@@ -307,7 +342,7 @@ class Report_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         $karyawan=json_decode($data->karyawan,true);
         DB::beginTransaction();
         try {
@@ -334,7 +369,7 @@ class Report_controller extends Controller
             'id_karyawan' => 'required',
             'jenis' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::join('tokos','tokos.id','=','users.toko_id')
@@ -343,7 +378,7 @@ class Report_controller extends Controller
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         DB::beginTransaction();
         try {
             if($data->jenis == 'sudah'){

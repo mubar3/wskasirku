@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddToko2 extends Migration
+class AddToko3 extends Migration
 {
     /**
      * Run the migrations.
@@ -14,8 +14,8 @@ class AddToko2 extends Migration
     public function up()
     {
         Schema::table('tokos', function (Blueprint $table) {
-            $table->time('jam_masuk')->after('gaji_harian')->default('12:00:00');
-            $table->text('jam_kerja')->after('jam_masuk')->default('8');
+            $table->time('jam_masuk2')->after('jam_kerja')->nullable();
+            $table->text('jam_kerja2')->after('jam_masuk2')->nullable();
         });
         //
     }
@@ -28,8 +28,8 @@ class AddToko2 extends Migration
     public function down()
     {
         Schema::table('tokos', function (Blueprint $table) {
-            $table->dropColumn('jam_masuk');
-            $table->dropColumn('jam_kerja');
+            $table->dropColumn('jam_masuk2');
+            $table->dropColumn('jam_kerja2');
         });
         //
     }

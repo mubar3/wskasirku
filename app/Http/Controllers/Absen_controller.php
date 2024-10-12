@@ -23,7 +23,7 @@ class Absen_controller extends Controller
             'status' => 'required',
             'foto' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::where('session',$data->session)->first();
@@ -62,7 +62,7 @@ class Absen_controller extends Controller
             }
         }
         return response()->json(['status'=>true,'message'=>'Berhasil']);
-        
+
     }
 
     public function get_absen(Request $data)
@@ -72,14 +72,14 @@ class Absen_controller extends Controller
             'tanggal_awal' => 'required',
             'tanggal_akhir' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::where('session',$data->session)->first();
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         $data_absen=Absen::select(
                 '*',
                 DB::raw("CASE WHEN foto = '' THEN NULL ELSE CONCAT('".url('/storage/absen')."','/',foto) END AS foto"),
@@ -98,20 +98,20 @@ class Absen_controller extends Controller
             'tanggal_awal' => 'required',
             'tanggal_akhir' => 'required',
         ]);
-        if($validator->fails()){      
+        if($validator->fails()){
             return response()->json(['status'=>false,'message'=>$validator->errors()]);
         }
         $user=User::where('session',$data->session)->first();
         if(!$user){
             return response()->json(['status'=>false,'message'=>'Session tidak tersedia']);
         }
-        
+
         $data_absen=[];
         $start_date=Carbon::parse($data->tanggal_awal);
         $key['masuk'] = 0;
         $key['libur'] = 0;
         while($start_date <= Carbon::parse($data->tanggal_akhir)){
-            
+
             $data_user=User::where('status','y')
                 ->where('toko_id',$user->toko_id)
                 ->where('jenis','karyawan')
@@ -124,12 +124,13 @@ class Absen_controller extends Controller
                     )
                     ->where('tanggal',$start_date->toDateString())
                     ->where('userid',$key->id)
-                    ->first();
-                if($absen){
-                    $absen['name']=$key->name;
-                    $absen['tanggal'] = $this->convertToIndonesianDate($start_date->toDateString());
-                    $data_absen[]=$absen;
-                }else{
+                    ->get();
+                foreach ($absen as $absens) {
+                    $absens['name']=$key->name;
+                    $absens['tanggal'] = $this->convertToIndonesianDate($start_date->toDateString());
+                    $data_absen[]=$absens;
+                }
+                if(count($absen) < 1){
                     $data_absen[]=[
                         'id' => null,
                         'userid' => $key->id,
@@ -141,6 +142,22 @@ class Absen_controller extends Controller
                         'name' => $key->name,
                     ];
                 }
+                // if($absen){
+                //     $absen['name']=$key->name;
+                //     $absen['tanggal'] = $this->convertToIndonesianDate($start_date->toDateString());
+                //     $data_absen[]=$absen;
+                // }else{
+                //     $data_absen[]=[
+                //         'id' => null,
+                //         'userid' => $key->id,
+                //         'tanggal' => $this->convertToIndonesianDate($start_date->toDateString()),
+                //         'foto' => null,
+                //         'status' => 'libur',
+                //         'created_at' => null,
+                //         'updated_at' => null,
+                //         'name' => $key->name,
+                //     ];
+                // }
             }
 
             $start_date->addDay();
@@ -174,16 +191,16 @@ class Absen_controller extends Controller
             11 => 'November',
             12 => 'Desember'
         );
-    
+
         $dateObj = Carbon::parse($date);
         $dayOfWeek = $dateObj->format('l');
-    
+
         $day = $dateObj->format('d');
         $month = $months[(int)$dateObj->format('m')];
         $year = $dateObj->format('Y');
-    
+
         $indonesianDate = $days[$dayOfWeek] . ', ' . $day . ' ' . $month . ' ' . $year;
-    
+
         return $indonesianDate;
     }
 }
