@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Validator;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Toko;
 use App\Models\Toko_tran;
 use App\Models\Toko2_tran;
 use App\Models\Toko2barang_tran;
@@ -33,6 +34,9 @@ class Absen_controller extends Controller
         $safeName = 'absen_'.$user->id.'_'.strtotime(Carbon::now()).'.jpg';
         $this->base64Image_link($data->foto,public_path('/storage/absen'),$safeName);
         $data['foto']=$safeName;
+
+        $toko=Toko::find($user->toko_id);
+
         $cek=Absen::where('userid',$user->id)
             ->where('tanggal',$data->tanggal)
             ->whereNull('updated_at')
@@ -46,20 +50,50 @@ class Absen_controller extends Controller
                 'updated_at' => Carbon::now(),
             ]);
         }else{
-            $cek=Absen::where('userid',$user->id)
-                ->where('tanggal',$data->tanggal)
+            // cek shift
+            $cek=Absen::join('users','users.id','=','absens.userid')
+                ->where('users.toko_id',$user->toko_id)
+                ->where('absens.tanggal',$data->tanggal)
+                ->whereNotNull('absens.updated_at')
                 ->first();
-            if(!$cek){
+            if($cek){
+                // shift 2
                 Absen::create([
                     'userid' => $user->id,
                     'tanggal' => $data->tanggal,
                     'status' => $data->status,
                     'foto' => $data->foto,
+                    'jam_masuk' => $toko->jam_masuk2,
+                    'jam_kerja' => $toko->jam_kerja2,
                     'created_at' => Carbon::now(),
                 ]);
             }else{
-                return response()->json(['status'=>false,'message'=>'Sudah absen masuk dan pulang']);
+                // shift 1
+                Absen::create([
+                    'userid' => $user->id,
+                    'tanggal' => $data->tanggal,
+                    'status' => $data->status,
+                    'foto' => $data->foto,
+                    'jam_masuk' => $toko->jam_masuk,
+                    'jam_kerja' => $toko->jam_kerja,
+                    'created_at' => Carbon::now(),
+                ]);
             }
+
+            // $cek=Absen::where('userid',$user->id)
+            //     ->where('tanggal',$data->tanggal)
+            //     ->first();
+            // if(!$cek){
+            //     Absen::create([
+            //         'userid' => $user->id,
+            //         'tanggal' => $data->tanggal,
+            //         'status' => $data->status,
+            //         'foto' => $data->foto,
+            //         'created_at' => Carbon::now(),
+            //     ]);
+            // }else{
+            //     return response()->json(['status'=>false,'message'=>'Sudah absen masuk dan pulang']);
+            // }
         }
         return response()->json(['status'=>true,'message'=>'Berhasil']);
 

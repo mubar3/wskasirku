@@ -71,86 +71,88 @@ class Report_controller extends Controller
             $key['kasbon']=0;
             while($start_date <= $end){
                 $cek_absens=Absen::where('tanggal',$start_date->toDateString())
-                ->where('userid',$key->id)
-                ->where('status','masuk')
-                ->orderBy('created_at')
-                ->get();
+                    ->where('userid',$key->id)
+                    ->where('status','masuk')
+                    ->orderBy('created_at')
+                    ->get();
 
-                // cek apa ada 2 shift
-                if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
-                    $user->gaji_harian=$user->gaji_harian/2;
-                }
+                // // cek apa ada 2 shift
+                // if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
+                //     $user->gaji_harian=$user->gaji_harian/2;
+                // }
 
                 // if($cek_absen){
-                $shift1=false;
+                // $shift1=false;
                 foreach ($cek_absens as $cek_absen) {
                     // hitung gaji
                     $key['masuk'] = $key['masuk'] + 1;
 
                     // ketika shift 1 / tidak ada shift 2
-                    // if(Carbon::parse($cek_absen->created_at)->toTimeString() > $user->jam_masuk && ( Carbon::parse($cek_absen->created_at)->toTimeString() < $user->jam_masuk2 || $user->jam_masuk2 == '' || $user->jam_masuk2 == null  ) ){
-                    if(!$shift1){
-                        $shift1=true;
+                    // if(!$shift1){
+                        // $shift1=true;
 
-                        $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk);
+                        $waktu_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$cek_absen->jam_masuk);
+                        $jam_masuk_toko=Carbon::parse($cek_absen->jam_masuk);
+                        $jam_kerja_toko=$cek_absen->jam_kerja;
                         $jam_masuk=Carbon::parse($cek_absen->created_at);
+                        $jam_pulang=Carbon::parse($cek_absen->updated_at);
 
                         if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
                             // ketika telat kurang dari 1 jam akan hitung mulai waktu buka toko
-                            if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours()){
+                            if($jam_masuk < $waktu_masuk_toko->addhours()){
                                 // ketika pulang awal
-                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
-                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
+                                if($jam_pulang < $waktu_masuk_toko->addhours($jam_kerja_toko)){
+                                    $durasi_kerja = $jam_pulang->diffInHours($waktu_masuk_toko);
                                 }else{
-                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk_toko);
+                                    $durasi_kerja = $jam_kerja_toko;
                                 }
                             }
                             // ketika telat lebih dari 1 jam akan hitung sesuai waktu masuk
                             else{
                                 // ketika pulang awal
-                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)){
-                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
+                                if($jam_pulang < $waktu_masuk_toko->addhours($jam_kerja_toko)){
+                                    $durasi_kerja = $jam_pulang->diffInHours($jam_masuk);
                                 }else{
-                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk)->addhours($user->jam_kerja)->diffInHours($jam_masuk);
+                                    $durasi_kerja =$waktu_masuk_toko->addhours($jam_kerja_toko)->diffInHours($jam_masuk);
                                 }
                             }
                         }else{
                             // ketika tidak absen pulang jam kerja jadi 1/3
-                            $durasi_kerja = (1/3)*$user->jam_kerja;
+                            $durasi_kerja = (1/3)*$jam_kerja_toko;
                         }
-                        $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja)*$user->gaji_harian);
+                        $key['gaji']=$key['gaji']+(($durasi_kerja/$jam_kerja_toko)*$user->gaji_harian);
                         $key['gaji']=(int)$key['gaji'];
-                    }else{
-                        $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2);
-                        $jam_masuk=Carbon::parse($cek_absen->created_at);
+                    // }else{
+                    //     $jam_masuk_toko=Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2);
+                    //     $jam_masuk=Carbon::parse($cek_absen->created_at);
 
-                        // shift 2
-                        if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
-                            // ketika telat kurang dari 1 jam akan hitung mulai waktu buka toko
-                            if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours()){
-                                // ketika pulang awal
-                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)){
-                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
-                                }else{
-                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)->diffInHours($jam_masuk_toko);
-                                }
-                            }
-                            // ketika telat lebih dari 1 jam akan hitung sesuai waktu masuk
-                            else{
-                                // ketika pulang awal
-                                if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)){
-                                    $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
-                                }else{
-                                    $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)->diffInHours($jam_masuk);
-                                }
-                            }
-                        }else{
-                            // ketika tidak absen pulang jam kerja jadi 1/3
-                            $durasi_kerja = (1/3)*$user->jam_kerja2;
-                        }
-                        $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja2)*$user->gaji_harian);
-                        $key['gaji']=(int)$key['gaji'];
-                    }
+                    //     // shift 2
+                    //     if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
+                    //         // ketika telat kurang dari 1 jam akan hitung mulai waktu buka toko
+                    //         if($jam_masuk < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours()){
+                    //             // ketika pulang awal
+                    //             if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)){
+                    //                 $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk_toko);
+                    //             }else{
+                    //                 $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)->diffInHours($jam_masuk_toko);
+                    //             }
+                    //         }
+                    //         // ketika telat lebih dari 1 jam akan hitung sesuai waktu masuk
+                    //         else{
+                    //             // ketika pulang awal
+                    //             if(Carbon::parse($cek_absen->updated_at) < Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)){
+                    //                 $durasi_kerja = Carbon::parse($cek_absen->updated_at)->diffInHours($jam_masuk);
+                    //             }else{
+                    //                 $durasi_kerja = Carbon::parse($cek_absen->tanggal.' '.$user->jam_masuk2)->addhours($user->jam_kerja2)->diffInHours($jam_masuk);
+                    //             }
+                    //         }
+                    //     }else{
+                    //         // ketika tidak absen pulang jam kerja jadi 1/3
+                    //         $durasi_kerja = (1/3)*$user->jam_kerja2;
+                    //     }
+                    //     $key['gaji']=$key['gaji']+(($durasi_kerja/$user->jam_kerja2)*$user->gaji_harian);
+                    //     $key['gaji']=(int)$key['gaji'];
+                    // }
 
                 // }else{
                 //     $key['libur'] = $key['libur'] + 1;

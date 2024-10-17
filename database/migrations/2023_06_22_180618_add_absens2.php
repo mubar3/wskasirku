@@ -13,9 +13,11 @@ class AddAbsens2 extends Migration
      */
     public function up()
     {
-        
+
         Schema::table('absens', function (Blueprint $table) {
             $table->text('foto2')->after('foto')->nullable();
+            $table->time('jam_masuk')->after('foto2')->nullable();
+            $table->text('jam_kerja')->after('jam_masuk')->nullable();
         });
         //
     }
@@ -29,6 +31,8 @@ class AddAbsens2 extends Migration
     {
         Schema::table('absens', function (Blueprint $table) {
             $table->dropColumn('foto2');
+            $table->dropColumn('jam_masuk');
+            $table->dropColumn('jam_kerja');
         });
         //
     }
