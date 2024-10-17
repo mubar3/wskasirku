@@ -76,10 +76,10 @@ class Report_controller extends Controller
                     ->orderBy('created_at')
                     ->get();
 
-                // // cek apa ada 2 shift
-                // if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
-                //     $user->gaji_harian=$user->gaji_harian/2;
-                // }
+                // cek apa ada 2 shift
+                if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
+                    $user->gaji_harian=$user->gaji_harian/2;
+                }
 
                 // if($cek_absen){
                 // $shift1=false;
@@ -99,9 +99,9 @@ class Report_controller extends Controller
 
                         if($cek_absen->updated_at != '' || $cek_absen->updated_at != null){
                             // ketika telat kurang dari 1 jam akan hitung mulai waktu buka toko
-                            if($jam_masuk < $waktu_masuk_toko->addhours()){
+                            if($jam_masuk < Carbon::parse($waktu_masuk_toko)->addhours()){
                                 // ketika pulang awal
-                                if($jam_pulang < $waktu_masuk_toko->addhours($jam_kerja_toko)){
+                                if($jam_pulang < Carbon::parse($waktu_masuk_toko)->addhours($jam_kerja_toko)){
                                     $durasi_kerja = $jam_pulang->diffInHours($waktu_masuk_toko);
                                 }else{
                                     $durasi_kerja = $jam_kerja_toko;
@@ -110,10 +110,10 @@ class Report_controller extends Controller
                             // ketika telat lebih dari 1 jam akan hitung sesuai waktu masuk
                             else{
                                 // ketika pulang awal
-                                if($jam_pulang < $waktu_masuk_toko->addhours($jam_kerja_toko)){
+                                if($jam_pulang < Carbon::parse($waktu_masuk_toko)->addhours($jam_kerja_toko)){
                                     $durasi_kerja = $jam_pulang->diffInHours($jam_masuk);
                                 }else{
-                                    $durasi_kerja =$waktu_masuk_toko->addhours($jam_kerja_toko)->diffInHours($jam_masuk);
+                                    $durasi_kerja =Carbon::parse($waktu_masuk_toko)->addhours($jam_kerja_toko)->diffInHours($jam_masuk);
                                 }
                             }
                         }else{
