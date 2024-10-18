@@ -14,8 +14,8 @@ class AddToko extends Migration
     public function up()
     {
         Schema::table('tokos', function (Blueprint $table) {
-            $table->text('sewa')->after('nama')->default('0');
-            $table->text('gaji_harian')->after('sewa')->default('30000');
+            $table->integer('sewa')->after('nama')->default('0');
+            $table->integer('gaji_harian')->after('sewa')->default('30000');
         });
         //
     }

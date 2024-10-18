@@ -15,7 +15,7 @@ class AddToko2 extends Migration
     {
         Schema::table('tokos', function (Blueprint $table) {
             $table->time('jam_masuk')->after('gaji_harian')->default('12:00:00');
-            $table->text('jam_kerja')->after('jam_masuk')->default('8');
+            $table->integer('jam_kerja')->after('jam_masuk')->default('8');
         });
         //
     }
