@@ -77,8 +77,11 @@ class Report_controller extends Controller
                     ->get();
 
                 // cek apa ada 2 shift
-                if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
-                    $user->gaji_harian=$user->gaji_harian/2;
+                // if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
+                //     $user->gaji_harian=$user->gaji_harian/2;
+                // }
+                if(count($cek_absens) > 1){
+                        $user->gaji_harian=$user->gaji_harian/count($cek_absens);
                 }
 
                 // if($cek_absen){
