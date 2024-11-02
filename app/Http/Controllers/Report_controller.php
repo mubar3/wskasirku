@@ -69,6 +69,7 @@ class Report_controller extends Controller
             $key['libur'] = 0;
             $key['gaji']=0;
             $key['kasbon']=0;
+            $gaji_harian_fix=$user->gaji_harian;
             while($start_date <= $end){
                 $cek_absens=Absen::where('tanggal',$start_date->toDateString())
                     ->where('userid',$key->id)
@@ -80,6 +81,7 @@ class Report_controller extends Controller
                 // if($user->jam_masuk2 != '' || $user->jam_masuk2 != null){
                 //     $user->gaji_harian=$user->gaji_harian/2;
                 // }
+                $user->gaji_harian=$gaji_harian_fix;
                 if(count($cek_absens) > 1){
                         $user->gaji_harian=$user->gaji_harian/count($cek_absens);
                 }
